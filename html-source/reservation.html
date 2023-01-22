@@ -13,21 +13,8 @@
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker-bs4.min.css">
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/notie/dist/notie.min.css">
+    <link rel="stylesheet" type="text/css" href="static/css/styles.css">
 
-    <style>
-        .my-footer {
-            height: 5em;
-            background-color: #163b65;
-            margin-top: 1.5em;
-            padding: 1em;
-            color: white;
-            font-size: 80%;
-        }
-
-        .notie-container {
-            box-shadow: none;
-        }
-    </style>
 </head>
 
 <body>
@@ -201,11 +188,50 @@
                 })
             }
 
+            const custom = async (c) => {
+                const {
+                    msg = "",
+                    title = "",
+                } = c;
+
+                //form modal with multiple inputs from sweet alerts
+                const { value: formValues } = await Swal.fire({
+                    title: title,
+                    html: msg,
+                    backdrop: false,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    willOpen: () => {
+                        const elem = document.getElementById("reservation-dates-modal");
+                        const rangePicker = new DateRangePicker(elem,{
+                            format: 'yyyy-mm-dd',
+                            showOnFocus: true,
+                        });
+                    },
+                    preConfirm: () => {
+                        return [
+                            document.getElementById('start').value,
+                            document.getElementById('end').value
+                        ]
+                    },
+                    didOpen: () => {
+                        document.getElementById('start').removeAttribute('disabled');
+                        document.getElementById('end').removeAttribute('disabled');
+                    }
+                })
+
+                if (formValues) {
+                    Swal.fire(JSON.stringify(formValues))
+                }
+            }
+
             return {
                 toast: toast,
                 success: success,
-                error, error,
+                error: error,
+                custom: custom,
             }
+
         }
 
         let attention = prompt();
@@ -238,9 +264,32 @@
 
             // notify(message, msgType);
             // notifyModal("title", <em>hello, world</em>, "success", "da button text");
-            attention.toast({ msg: "lorum ipsum" });
-            attention.success({ msg: "lorum ipsum" });
-            attention.error({ msg: "lorum ipsum" });
+
+            let html = `
+                <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-row" id="reservation-dates-modal">
+                                <div class="col">
+                                    <input required disabled class="form-control" type="text" name="start" id="start" placeholder="Arrival">
+                                </div>
+                                <div class="col">
+                                    <input required disabled class="form-control" type="text" name="end" id="end" placeholder="Departure">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                `;
+
+
+            // attention.toast({ msg: "lorum ipsum" });
+            // attention.success({ msg: "lorum ipsum" });
+            // attention.error({ msg: "lorum ipsum" });
+            attention.custom({ 
+                msg:html, 
+                title: "Choose your dates",
+            });
         })
 
 
